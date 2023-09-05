@@ -1,0 +1,340 @@
+---
+title: "NMF_Visualization"
+author: "Candice Yu"
+date: "2023-02-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load packages 
+```{r}
+#install.packages("plotly")
+library(Biobase)
+library(plotly)
+library(NMF)
+library(tidyverse)
+library("plyr")
+library("dplyr")
+```
+
+# Import data 
+```{r}
+load('/Users/candiceyu/Documents/PSTAT296B/Code/nmfResults296_20230216.RData')
+snmfl$fit$`15`
+
+basismap(snmfl$fit$`15`)
+coefmap(minfit(snmfl$fit$`15`))
+#coefmap(snmfl$fit$`15`)
+
+```
+
+# Extract the index of the features according to thresholds 
+```{r}
+# Threshold greater than 0.8
+Features_Num_0.8 <- extractFeatures(snmfl$fit$`15`, 0.8)
+
+# Threshold greater between 0.6 to 0.8
+Features_Num_0.6 <- extractFeatures(snmfl$fit$`15`, 0.6)
+Features_Num_0.6_0.8 <- Features_Num_0.6
+for (i in 1:15){
+  SameIndex <- !(Features_Num_0.6[[i]]  %in% Features_Num_0.8[[i]])
+  Features_Num_0.6_0.8[[i]]<- Features_Num_0.6[[i]][SameIndex]
+}
+
+# Threshold greater between 0.4 to 0.6
+Features_Num_0.4 <- extractFeatures(snmfl$fit$`15`, 0.4)
+Features_Num_0.4_0.6 <- Features_Num_0.4
+for (i in 1:15){
+  SameIndex <- !(Features_Num_0.4[[i]]  %in% Features_Num_0.6[[i]])
+  Features_Num_0.4_0.6[[i]]<- Features_Num_0.4[[i]][SameIndex]
+}
+
+# Threshold greater between 0.2 to 0.4
+Features_Num_0.2 <- extractFeatures(snmfl$fit$`15`, 0.2)
+Features_Num_0.2_0.4 <- Features_Num_0.2
+for (i in 1:15){
+  SameIndex <- !(Features_Num_0.2[[i]]  %in% Features_Num_0.4[[i]])
+  Features_Num_0.2_0.4[[i]]<- Features_Num_0.2[[i]][SameIndex]
+}
+
+# Threshold greater between 0 to 0.2
+Features_Num_0.0 <- extractFeatures(snmfl$fit$`15`, 0.0)
+Features_Num_0.0_0.2 <- Features_Num_0.0
+for (i in 1:15){
+  SameIndex <- !(Features_Num_0.0[[i]]  %in% Features_Num_0.2[[i]])
+  Features_Num_0.0_0.2[[i]]<- Features_Num_0.0[[i]][SameIndex]
+}
+```
+
+# Extract coef data from final NMF model 
+```{r}
+basis_df <- data.frame(basis(snmfl$fit$`15`))
+basis_df <- cbind(rownames(basis_df), basis_df)
+rownames(basis_df) <- NULL
+colnames(basis_df)<- c("Benefit","Basis_1", "Basis_2", "Basis_3", "Basis_4", "Basis_5", 
+                       "Basis_6", "Basis_7", "Basis_8", "Basis_9", "Basis_10", "Basis_11", 
+                       "Basis_12", "Basis_13" ,"Basis_14", "Basis_15")
+```
+
+# Extract Benefit for each threshold 
+```{r}
+# Create Threshold greater than 0.8
+Features_0.8 <- combine(basis_df[Features_Num_0.8[1][[1]], c(1,2)], 
+                        basis_df[Features_Num_0.8[2][[1]], c(1,3)], 
+                        basis_df[Features_Num_0.8[3][[1]], c(1,4)], 
+                        basis_df[Features_Num_0.8[4][[1]], c(1,5)], 
+                        basis_df[Features_Num_0.8[5][[1]], c(1,6)], 
+                        basis_df[Features_Num_0.8[6][[1]], c(1,7)], 
+                        basis_df[Features_Num_0.8[7][[1]], c(1,8)], 
+                        basis_df[Features_Num_0.8[8][[1]], c(1,9)], 
+                        basis_df[Features_Num_0.8[9][[1]], c(1,10)], 
+                        basis_df[Features_Num_0.8[10][[1]], c(1,11)], 
+                        basis_df[Features_Num_0.8[11][[1]], c(1,12)], 
+                        basis_df[Features_Num_0.8[12][[1]], c(1,13)], 
+                        basis_df[Features_Num_0.8[13][[1]], c(1,14)], 
+                        basis_df[Features_Num_0.8[14][[1]], c(1,15)], 
+                        basis_df[Features_Num_0.8[15][[1]], c(1,16)])
+Features_0.8_long <- Features_0.8 %>% 
+  pivot_longer(cols = 2:16)
+Features_0.8_long <- Features_0.8_long[!(is.na(Features_0.8_long$value)), ]
+Features_0.8_long$Threshold <- "0.8"
+
+# Threshold greater between 0.6 to 0.8
+Features_0.6_0.8 <- combine(basis_df[Features_Num_0.6_0.8[1][[1]], c(1,2)], 
+                        basis_df[Features_Num_0.6_0.8[2][[1]], c(1,3)], 
+                        basis_df[Features_Num_0.6_0.8[3][[1]], c(1,4)], 
+                        basis_df[Features_Num_0.6_0.8[4][[1]], c(1,5)],
+                        basis_df[Features_Num_0.6_0.8[5][[1]], c(1,6)], 
+                        basis_df[Features_Num_0.6_0.8[6][[1]], c(1,7)], 
+                        basis_df[Features_Num_0.6_0.8[7][[1]], c(1,8)],
+                        basis_df[Features_Num_0.6_0.8[8][[1]], c(1,9)], 
+                        basis_df[Features_Num_0.6_0.8[9][[1]], c(1,10)], 
+                        basis_df[Features_Num_0.6_0.8[10][[1]], c(1,11)], 
+                        basis_df[Features_Num_0.6_0.8[11][[1]], c(1,12)], 
+                        basis_df[Features_Num_0.6_0.8[12][[1]], c(1,13)], 
+                        basis_df[Features_Num_0.6_0.8[13][[1]], c(1,14)], 
+                        basis_df[Features_Num_0.6_0.8[14][[1]], c(1,15)], 
+                        basis_df[Features_Num_0.6_0.8[15][[1]], c(1,16)])
+                        
+Features_0.6_0.8_long <- Features_0.6_0.8 %>% 
+  pivot_longer(cols = 2:16)
+Features_0.6_0.8_long <- Features_0.6_0.8_long[!(is.na(Features_0.6_0.8_long$value)), ]
+Features_0.6_0.8_long$Threshold <- "0.6_0.8"
+
+# Threshold greater between 0.4 to 0.6
+Features_0.4_0.6 <- combine(basis_df[Features_Num_0.4_0.6[1][[1]], c(1,2)], 
+                        basis_df[Features_Num_0.4_0.6[2][[1]], c(1,3)], 
+                        basis_df[Features_Num_0.4_0.6[3][[1]], c(1,4)], 
+                        basis_df[Features_Num_0.4_0.6[4][[1]], c(1,5)],
+                        basis_df[Features_Num_0.4_0.6[5][[1]], c(1,6)], 
+                        basis_df[Features_Num_0.4_0.6[6][[1]], c(1,7)], 
+                        basis_df[Features_Num_0.4_0.6[7][[1]], c(1,8)], 
+                        basis_df[Features_Num_0.4_0.6[8][[1]], c(1,9)], 
+                        basis_df[Features_Num_0.4_0.6[9][[1]], c(1,10)], 
+                        basis_df[Features_Num_0.4_0.6[10][[1]], c(1,11)], 
+                        basis_df[Features_Num_0.4_0.6[11][[1]], c(1,12)], 
+                        basis_df[Features_Num_0.4_0.6[12][[1]], c(1,13)], 
+                        basis_df[Features_Num_0.4_0.6[13][[1]], c(1,14)], 
+                        basis_df[Features_Num_0.4_0.6[14][[1]], c(1,15)], 
+                        basis_df[Features_Num_0.4_0.6[15][[1]], c(1,16)])
+Features_0.4_0.6_long <- Features_0.4_0.6 %>% 
+  pivot_longer(cols = 2:16)
+Features_0.4_0.6_long <- Features_0.4_0.6_long[!(is.na(Features_0.4_0.6_long$value)), ]
+Features_0.4_0.6_long$Threshold <- "0.4_0.6"
+
+# Threshold greater between 0.2 to 0.4
+Features_0.2_0.4 <- combine(basis_df[Features_Num_0.2_0.4[1][[1]], c(1,2)], 
+                        basis_df[Features_Num_0.2_0.4[2][[1]], c(1,3)], 
+                        basis_df[Features_Num_0.2_0.4[3][[1]], c(1,4)], 
+                        basis_df[Features_Num_0.2_0.4[4][[1]], c(1,5)],
+                        basis_df[Features_Num_0.2_0.4[5][[1]], c(1,6)], 
+                        basis_df[Features_Num_0.2_0.4[6][[1]], c(1,7)], 
+                        basis_df[Features_Num_0.2_0.4[7][[1]], c(1,8)],
+                        basis_df[Features_Num_0.2_0.4[8][[1]], c(1,9)], 
+                        basis_df[Features_Num_0.2_0.4[9][[1]], c(1,10)], 
+                        basis_df[Features_Num_0.2_0.4[10][[1]], c(1,11)], 
+                        basis_df[Features_Num_0.2_0.4[11][[1]], c(1,12)], 
+                        basis_df[Features_Num_0.2_0.4[12][[1]], c(1,13)], 
+                        basis_df[Features_Num_0.2_0.4[13][[1]], c(1,14)], 
+                        basis_df[Features_Num_0.2_0.4[14][[1]], c(1,15)], 
+                        basis_df[Features_Num_0.2_0.4[15][[1]], c(1,16)])
+Features_0.2_0.4_long <- Features_0.2_0.4 %>% 
+  pivot_longer(cols = 2:16)
+Features_0.2_0.4_long <- Features_0.2_0.4_long[!(is.na(Features_0.2_0.4_long$value)), ]
+Features_0.2_0.4_long$Threshold <- "0.2_0.4"
+
+# Threshold greater between 0.0 to 0.2
+Features_0.0_0.2 <- combine(basis_df[Features_Num_0.0_0.2[1][[1]], c(1,2)], 
+                        basis_df[Features_Num_0.0_0.2[2][[1]], c(1,3)], 
+                        basis_df[Features_Num_0.0_0.2[3][[1]], c(1,4)], 
+                        basis_df[Features_Num_0.0_0.2[4][[1]], c(1,5)],
+                        basis_df[Features_Num_0.0_0.2[5][[1]], c(1,6)], 
+                        basis_df[Features_Num_0.0_0.2[6][[1]], c(1,7)], 
+                        basis_df[Features_Num_0.0_0.2[7][[1]], c(1,8)],
+                        basis_df[Features_Num_0.0_0.2[8][[1]], c(1,9)], 
+                        basis_df[Features_Num_0.0_0.2[9][[1]], c(1,10)], 
+                        basis_df[Features_Num_0.0_0.2[10][[1]], c(1,11)], 
+                        basis_df[Features_Num_0.0_0.2[11][[1]], c(1,12)], 
+                        basis_df[Features_Num_0.0_0.2[12][[1]], c(1,13)], 
+                        basis_df[Features_Num_0.0_0.2[13][[1]], c(1,14)], 
+                        basis_df[Features_Num_0.0_0.2[14][[1]], c(1,15)], 
+                        basis_df[Features_Num_0.0_0.2[15][[1]], c(1,16)])
+Features_0.0_0.2_long <- Features_0.0_0.2 %>% 
+  pivot_longer(cols = 2:16)
+Features_0.0_0.2_long <- Features_0.0_0.2_long[!(is.na(Features_0.0_0.2_long$value)), ]
+Features_0.0_0.2_long$Threshold <- "0.0_0.2"
+
+# Combine all threshold into one dataset 
+Features_threshold_all <- rbind(Features_0.8_long, Features_0.6_0.8_long, Features_0.4_0.6_long, 
+                                Features_0.2_0.4_long, Features_0.0_0.2_long)
+names(Features_threshold_all) <- c("Benefit", "Basis", "Coef", "Threshold")
+```
+
+# Data frame containing the length of the benefit for each basis
+```{r}
+length_rank_0.8 <- data.frame()
+length_rank_0.6_0.8 <- data.frame()
+length_rank_0.4_0.6 <- data.frame()
+length_rank_0.2_0.4 <- data.frame()
+length_rank_0.0_0.2 <- data.frame()
+
+for (i in 1:7){
+  length_rank_0.8 <- rbind(length_rank_0.8, length(Features_Num_0.8[[i]]))
+}
+for (i in 1:7){
+  length_rank_0.6_0.8 <- rbind(length_rank_0.6_0.8, length(Features_Num_0.6_0.8[[i]]))
+}
+for (i in 1:7){
+  length_rank_0.4_0.6 <- rbind(length_rank_0.4_0.6, length(Features_Num_0.4_0.6[[i]]))
+}
+for (i in 1:7){
+  length_rank_0.2_0.4 <- rbind(length_rank_0.2_0.4, length(Features_Num_0.2_0.4[[i]]))
+}
+for (i in 1:7){
+  length_rank_0.0_0.2 <- rbind(length_rank_0.0_0.2, length(Features_Num_0.0_0.2[[i]]))
+}
+length_rank <- cbind(length_rank_0.8, length_rank_0.6_0.8, length_rank_0.4_0.6, 
+                     length_rank_0.2_0.4, length_rank_0.0_0.2)
+
+
+length_rank <- cbind(rownames(length_rank), length_rank)
+rownames(length_rank) <- NULL
+colnames(length_rank)<- c("Rank","Length_Rank_0.8", "Length_Rank_0.6_0.8", "Length_Rank_0.4_0.6", 
+                       "Length_Rank_0.2_0.4", "Length_Rank_0.0_0.2")
+```
+
+
+# Change the length_rank data to longer version 
+```{r}
+length_rank_t <- data.frame(t(length_rank))
+length_rank_t <- length_rank_t[-1,]
+
+length_rank_t <- cbind(rownames(length_rank_t), length_rank_t)
+rownames(length_rank_t) <- NULL
+colnames(length_rank_t)<- c("Threshold","Basis_1", "Basis_2", "Basis_3", "Basis_4", "Basis_5", "Basis_6", "Basis_7")
+
+length_rank_long <- length_rank_t %>% 
+  pivot_longer(cols = 2:8)
+colnames(length_rank_long)<- c("Threshold", "Basis", "Count")
+length_rank_long$Count <- as.integer(length_rank_long$Count)
+```
+
+# Create a new dataset (1. all benefit separated by group; 2. add column of count)
+```{r eval=FALSE}
+Features_threshold_combine<- Features_threshold_all %>%
+  arrange(desc(Coef)) %>%
+  group_by(Basis, Threshold) %>%
+  mutate(count=n()) %>%
+  mutate(Benefits_all= paste(Benefit, collapse = ", ")) %>%
+  subset(select = -c(1,3)) %>%
+  unique()
+
+
+Features_threshold_final <- cbind(Features_threshold_combine, 
+      str_split_fixed(Features_threshold_combine$Benefits_all, ", ", n=max(Features_threshold_combine$count)))
+```
+
+# Stacked Bar Plot: Benefits in Each Basis Factor Ordered by Threshold
+```{r eval=FALSE}
+index <- list(names(Features_threshold_final)[5:(max(Features_threshold_combine$count)+4)])
+plot_ly(Features_threshold_final, 
+        x = ~Basis,
+        y = ~count,
+        color = ~Threshold,
+        type = "bar", 
+        hovertext = ~paste(...5, ...6, ...7, ...8, ...9, ...10, ...11, ...12, ...13, ...14, ...15, ...16, ...17,
+                      ...18, ...19, ...20, ...21, ...22, ...23, ...24, ...25, ...26, ...27, ...28, ...29, ...30,
+                      ...31, ...32, ...33, ...34, ...35, ...36, ...37, ...38, ...39, ...40, ...41, ...42, ...43,
+                      ...44, ...45, ...46, ...47, ...48, ...49, ...50, ...51, ...52, ...53, ...54, ...55, ...56,
+                      ...57, ...58, ...59, ...60, ...61, ...62, ...63, ...64, ...65, ...66, ...67, ...68, ...69,
+                      ...70, ...71, ...72, ...73, ...74, ...75, ...76, ...77, ...78, ...79, ...80, ...81, ...82,
+                      ...83, ...84, ...85, ...86, ...87, ...88, ...89, ...90, ...91, ...92, ...93, ...94, ...95,
+                      ...96, ...97, ...98, ...99, ...100, ...101, ...102, ...103, ...104, ...105, sep = "\n")) %>%
+  layout(yaxis = list(title = 'Count of Benefits'), barmode = "stack",
+         title="Benefits in Each Basis Factor Ordered by Threshold",
+         hoverlabel = list(font = list(family = "Sitka Small", size = 12, color = "Black"))) 
+```
+
+
+```{r}
+# Combine all threshold into one dataset 
+Features_threshold_all_2 <- rbind(Features_0.8_long, Features_0.6_0.8_long, Features_0.4_0.6_long, 
+                                Features_0.2_0.4_long)
+names(Features_threshold_all_2) <- c("Benefit", "Basis", "Coef", "Threshold")
+# Create a new dataset (1. all benefit separated by group; 2. add column of count)
+
+Features_threshold_combine_2 <- Features_threshold_all_2 %>%
+  arrange(desc(Coef)) %>%
+  group_by(Basis, Threshold) %>%
+  dplyr::mutate(count=n()) %>%
+  dplyr::mutate(Benefits_all= paste(Benefit, collapse = ", ")) %>%
+  subset(select = -c(1,3)) %>%
+  unique()
+
+Features_threshold_final_2 <- cbind(Features_threshold_combine_2, 
+      str_split_fixed(Features_threshold_combine_2$Benefits_all, ", ", n=max(Features_threshold_combine_2$count)))
+
+```
+
+# Stacked Bar Plot: Benefits in Each Basis Factor Ordered by Threshold
+```{r}
+index <- list(names(Features_threshold_final_2)[5:(max(Features_threshold_combine_2$count)+4)])
+plot_ly(Features_threshold_final_2, 
+        x = ~Basis,
+        y = ~count,
+        color = ~Threshold,
+#        colors = 'Blues',
+        type = "bar", 
+        hovertext = ~paste(...5, ...6, ...7, ...8, ...9, ...10, ...11, ...12, ...13, ...14, ...15, ...16, ...17,
+                           sep = "\n")) %>%
+  layout(xaxis = list(title = "Basis Components", categoryorder = "array", 
+                      categoryarray = c("Basis_1", "Basis_2", "Basis_3", "Basis_4", "Basis_5",
+                                        "Basis_6", "Basis_7", "Basis_8", "Basis_9", "Basis_10",
+                                        "Basis_11", "Basis_12", "Basis_13", "Basis_14", "Basis_15")),
+         yaxis = list(title = 'Count of Benefits'), barmode = "stack",
+         title="Benefits in Each Basis Component Ordered by Threshold",
+         hoverlabel = list(font = list(family = "Sitka Small", size = 12, color = "black"))) 
+
+```
+
+```{r}
+
+Data_Dictionary<- read.csv("/Users/candiceyu/Documents/PSTAT296B/Data/Data Dictionary - Sheet1.csv", header = FALSE)
+names(Data_Dictionary) <- c("Benefit","Dictionary")
+
+
+# Left join on multiple columns
+Features_Threshold_Dictionary <- merge(x = Features_threshold_all_2, y = Data_Dictionary, 
+                         by = c("Benefit"), all.x=TRUE)
+
+
+
+
+write_csv(Features_Threshold_Dictionary,
+          '/Users/candiceyu/Documents/PSTAT296B/Data/Features_Threshold_Dictionary_20230222.csv')
+
+```
+
